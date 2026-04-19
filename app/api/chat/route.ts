@@ -34,7 +34,21 @@ export async function POST(request: Request) {
     });
 
     const data = await upstream.json();
-    return Response.json(data, { status: upstream.status });
+
+    // FastAPI validation errors (422) return {detail: [...]}, not our schema
+    if (!data.status || !data.answer) {
+      return Response.json(
+        {
+          status: "error",
+          answer:
+            "I couldn't process that request. Please try rephrasing your question.",
+          last_updated_from_sources: "Unavailable",
+        },
+        { status: 200 },
+      );
+    }
+
+    return Response.json(data, { status: 200 });
   } catch {
     return Response.json(
       {

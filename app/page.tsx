@@ -1,11 +1,11 @@
 "use client";
 
-import { motion, useInView, useScroll, useTransform } from "framer-motion";
-import { useRef } from "react";
-import { AssistantPreview } from "../components/assistant-preview";
-import styles from "./page.module.css";
+import { useState, useEffect } from "react";
+import Link from "next/link";
+import { motion } from "framer-motion";
+import s from "./page.module.css";
 
-/* ── Data ── */
+/* ─── Data ─── */
 
 const stats = [
   { value: "25+", label: "Official sources indexed" },
@@ -16,464 +16,493 @@ const stats = [
 const features = [
   {
     icon: "📊",
-    title: "Expense ratios & fees",
-    description:
-      "Get exact expense ratios, exit loads, and fee structures pulled directly from official scheme documents.",
+    title: "Live Expense Ratios",
+    text: "Get exact expense ratios sourced from official AMC fact sheets — no estimation, no guesswork.",
   },
   {
     icon: "🔒",
-    title: "ELSS & lock-in details",
-    description:
-      "Understand lock-in periods, tax-saving eligibility, and redemption rules for ELSS and other scheme types.",
+    title: "ELSS & Lock-in Periods",
+    text: "Instantly know lock-in periods and tax-saving eligibility with direct SEBI citations.",
   },
   {
     icon: "💰",
-    title: "SIP & investment minimums",
-    description:
-      "Find minimum SIP amounts, lumpsum requirements, and additional purchase thresholds instantly.",
+    title: "SIP Minimums & Limits",
+    text: "Minimum SIP amounts, lumpsum thresholds, and transaction limits — straight from the source.",
   },
   {
     icon: "📈",
-    title: "Benchmarks & risk ratings",
-    description:
-      "Access riskometer categories, benchmark indices, and fund classification details from SEBI filings.",
+    title: "Benchmark Comparisons",
+    text: "Which index does your fund track? Performance benchmarks cited from official fund documents.",
   },
   {
     icon: "📄",
-    title: "Statement & tax documents",
-    description:
-      "Step-by-step guidance on downloading capital gains statements, account summaries, and tax documents.",
+    title: "Statements & Downloads",
+    text: "Step-by-step guidance for CAS, capital gains, and account statements from AMFI & AMCs.",
   },
   {
     icon: "🛡️",
-    title: "Safe & transparent",
-    description:
-      "No personal data collected. No investment advice given. Every answer links back to its official source.",
+    title: "Safe & Transparent",
+    text: "Every answer includes a citation. No hallucinations — if we don't have the data, we say so.",
   },
 ];
 
 const steps = [
   {
-    number: "01",
-    title: "Ask a question",
-    description:
-      "Type any factual question about mutual fund schemes — expense ratios, exit loads, SIP minimums, or tax documents.",
+    num: "01",
+    title: "Ask any question",
+    text: "Type a question about any Groww mutual fund — expense ratios, exit loads, SIP minimums, or anything else.",
   },
   {
-    number: "02",
+    num: "02",
     title: "Get a cited answer",
-    description:
-      "Receive a clear, concise answer sourced from official AMC factsheets, SEBI filings, and AMFI records.",
+    text: "Receive a precise answer backed by an official AMC, SEBI, or AMFI document with a clickable citation.",
   },
   {
-    number: "03",
+    num: "03",
     title: "Verify the source",
-    description:
-      "Every response includes a direct link to the official document so you can verify the information yourself.",
+    text: "Click the citation link to view the original document yourself — full transparency, zero guesswork.",
   },
 ];
 
 const trustPoints = [
-  "Answers sourced exclusively from official AMC, SEBI, and AMFI documents",
-  "No personal information collected — no PAN, Aadhaar, or account details",
-  "No investment advice or buy/sell recommendations, ever",
-  "Every answer includes a verifiable source link",
-  "No return calculations or performance comparisons",
-  "Opinionated questions are politely declined with helpful redirects",
+  "Every answer cites an official AMC, SEBI, or AMFI source document.",
+  "Expense ratios, exit loads, lock-in periods — all sourced from official fact sheets.",
+  "If the information isn't in our verified database, we'll tell you instead of guessing.",
+  "No user data is stored. Your queries are processed in real-time and never logged.",
+  "Built on retrieval-augmented generation — answers are grounded in documents, not imagination.",
+  "Sources are refreshed regularly so you always get up-to-date information.",
 ];
 
-/* ── Animation variants ── */
+const chipData = [
+  { value: "0.44%", label: "Groww Nifty 50 ER", up: false },
+  { value: "24.31%", label: "Large Cap 1Y Return", up: true },
+  { value: "₹100", label: "Min SIP Amount", up: false },
+  { value: "0%", label: "Exit Load (ELSS)", up: false },
+];
+
+/* ─── Framer Motion variants ─── */
 
 const fadeUp = {
-  hidden: { opacity: 0, y: 28 },
-  show:   { opacity: 1, y: 0, transition: { duration: 0.55, ease: [0.22, 1, 0.36, 1] as [number,number,number,number] } },
+  hidden: { opacity: 0, y: 24 },
+  visible: (i = 0) => ({
+    opacity: 1,
+    y: 0,
+    transition: { duration: 0.6, ease: [0.22, 1, 0.36, 1] as const, delay: i * 0.08 },
+  }),
 };
 
-const fadeIn = {
-  hidden: { opacity: 0 },
-  show:   { opacity: 1, transition: { duration: 0.5 } },
-};
-
-const stagger = (delay = 0) => ({
-  hidden: {},
-  show:   { transition: { staggerChildren: 0.09, delayChildren: delay } },
-});
-
-const cardHover = {
-  rest:  { y: 0, boxShadow: "0 1px 3px rgba(0,0,0,0.06)" },
-  hover: { y: -5, boxShadow: "0 12px 36px rgba(0,0,0,0.1), 0 0 0 1px rgba(0,208,156,0.2)", transition: { duration: 0.22, ease: "easeOut" } },
-};
-
-/* ── Scroll-reveal hook ── */
-function useFadeIn(threshold = 0.15) {
-  const ref = useRef<HTMLDivElement>(null);
-  const inView = useInView(ref, { once: true, amount: threshold });
-  return { ref, inView };
-}
-
-/* ══════════════════════════════════════════════════ */
+/* ─── Page Component ─── */
 
 export default function Home() {
-  const { ref: featRef, inView: featIn } = useFadeIn();
-  const { ref: stepsRef, inView: stepsIn } = useFadeIn();
-  const { ref: assistRef, inView: assistIn } = useFadeIn();
-  const { ref: trustRef, inView: trustIn } = useFadeIn();
-  const { scrollY } = useScroll();
-  const floatingBotOpacity = useTransform(scrollY, [120, 280], [0, 1]);
-  const floatingBotY = useTransform(scrollY, [120, 280], [24, 0]);
+  const [theme, setTheme] = useState<"dark" | "light">("dark");
+
+  useEffect(() => {
+    const saved = localStorage.getItem("theme") as "dark" | "light" | null;
+    if (saved === "light") {
+      setTheme("light");
+      document.documentElement.setAttribute("data-theme", "light");
+    }
+  }, []);
+
+  const toggleTheme = () => {
+    const next = theme === "dark" ? "light" : "dark";
+    setTheme(next);
+    if (next === "light") {
+      document.documentElement.setAttribute("data-theme", "light");
+    } else {
+      document.documentElement.removeAttribute("data-theme");
+    }
+    localStorage.setItem("theme", next);
+  };
 
   return (
-    <main className={styles.page}>
-
-      {/* ── HEADER ── */}
-      <motion.header
-        className={styles.header}
-        initial={{ y: -80, opacity: 0 }}
-        animate={{ y: 0, opacity: 1 }}
-        transition={{ duration: 0.55, ease: [0.22, 1, 0.36, 1] }}
-      >
-        <div className={styles.headerInner}>
-          <a className={styles.logo} href="#top">
-            <span className={styles.logoMark}>F</span>
-            <span className={styles.logoText}>FundIntel</span>
-          </a>
-
-          <nav className={styles.nav} aria-label="Primary">
-            {["Features", "How it works", "Try it", "Trust & safety"].map((label, i) => (
-              <motion.a
-                key={label}
-                href={`#${["features","how-it-works","assistant","trust"][i]}`}
-                initial={{ opacity: 0, y: -12 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.1 + i * 0.06, duration: 0.4 }}
-              >
-                {label}
-              </motion.a>
-            ))}
+    <div className={s.page}>
+      {/* ─── HEADER ─── */}
+      <header className={s.header}>
+        <div className={s.headerInner}>
+          <div className={s.logo}>
+            <span className={s.logoMark}>FI</span>
+            <span className={s.logoText}>FundIntel</span>
+          </div>
+          <nav className={s.nav}>
+            <a href="#features" className={s.navLink}>Features</a>
+            <a href="#how-it-works" className={s.navLink}>How it works</a>
+            <a href="#trust" className={s.navLink}>Trust</a>
           </nav>
-
-          <motion.a
-            className={styles.headerCta}
-            href="#assistant"
-            initial={{ opacity: 0, scale: 0.9 }}
-            animate={{ opacity: 1, scale: 1 }}
-            transition={{ delay: 0.4, duration: 0.4 }}
-          >
-            Try the assistant
-          </motion.a>
+          <div className={s.headerActions}>
+            <button
+              className={s.themeToggle}
+              onClick={toggleTheme}
+              aria-label="Toggle light/dark mode"
+            >
+              {theme === "dark" ? "☀️" : "🌙"}
+            </button>
+            <Link href="/chat" className={s.headerCta}>
+              Ask a question
+            </Link>
+          </div>
         </div>
-      </motion.header>
+      </header>
 
-      {/* ── HERO ── */}
-      <section className={styles.hero} id="top">
-        <div className={styles.heroBackground}>
-          <div className={styles.heroOrb1} />
-          <div className={styles.heroOrb2} />
-          <div className={styles.heroOrb3} />
-          <div className={styles.heroGrid} />
-          <div className={styles.heroNoise} />
+      {/* ─── HERO ─── */}
+      <section className={s.hero}>
+        <div className={s.heroBackground}>
+          <div className={s.heroOrb1} />
+          <div className={s.heroOrb2} />
+          <div className={s.heroOrb3} />
+          <div className={s.heroOrb4} />
+          <div className={s.heroGrid} />
+          <div className={s.heroNoise} />
         </div>
 
-        <div className={styles.heroInner}>
+        <div className={s.heroInner}>
           <motion.div
-            variants={stagger(0.1)}
-            initial="hidden"
-            animate="show"
-            style={{ display: "flex", flexDirection: "column", alignItems: "center" }}
+            className={s.heroBadge}
+            initial={{ opacity: 0, y: 12 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
           >
-            <motion.div className={styles.heroBadge} variants={fadeUp}>
-              <span className={styles.badgeDot} />
-              Powered by official AMC &amp; SEBI documents
-            </motion.div>
-
-            <motion.h1 className={styles.heroTitle} variants={fadeUp}>
-              Instant answers to your
-              <br />
-              <span className={styles.heroHighlight}>mutual fund questions</span>
-            </motion.h1>
-
-            <motion.p className={styles.heroSubtitle} variants={fadeUp}>
-              Ask about expense ratios, exit loads, SIP minimums, ELSS lock-in periods, and more.
-              Every answer is sourced from official documents and includes a citation you can verify.
-            </motion.p>
-
-            <motion.div className={styles.heroActions} variants={fadeUp}>
-              <a className={styles.ctaPrimary} href="#assistant">
-                Ask a question
-                <span className={styles.ctaArrow}>→</span>
-              </a>
-              <a className={styles.ctaSecondary} href="#how-it-works">
-                See how it works
-              </a>
-            </motion.div>
-
-            <motion.div className={styles.heroChips} variants={fadeUp}>
-              {[
-                { label: "Expense ratio", value: "0.22%", change: "Direct plan", up: true },
-                { label: "Min SIP", value: "₹100", change: "Nifty 50 Index", up: true },
-                { label: "ELSS lock-in", value: "3 years", change: "Tax saving", up: null },
-                { label: "Exit load", value: "Nil", change: "After 1Y", up: true },
-              ].map((chip, i) => (
-                <motion.div
-                  key={chip.label}
-                  className={styles.chip}
-                  initial={{ opacity: 0, y: 12, scale: 0.95 }}
-                  animate={{ opacity: 1, y: 0, scale: 1 }}
-                  transition={{ delay: 0.85 + i * 0.08, duration: 0.4, ease: [0.22, 1, 0.36, 1] as [number,number,number,number] }}
-                >
-                  <span className={styles.chipDot} />
-                  <span className={styles.chipLabel}>{chip.label}</span>
-                  <span className={styles.chipValue}>{chip.value}</span>
-                  {chip.up === true && <span className={styles.chipUp}>↑</span>}
-                </motion.div>
-              ))}
-            </motion.div>
-
-            <motion.div className={styles.statsRow} variants={fadeUp}>
-              {stats.map((stat, i) => (
-                <motion.div
-                  className={styles.statItem}
-                  key={stat.label}
-                  initial={{ opacity: 0, y: 16 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: 0.7 + i * 0.1, duration: 0.45 }}
-                >
-                  <span className={styles.statValue}>{stat.value}</span>
-                  <span className={styles.statLabel}>{stat.label}</span>
-                </motion.div>
-              ))}
-            </motion.div>
-          </motion.div>
-        </div>
-      </section>
-
-      {/* ── TRUST BAR ── */}
-      <motion.section
-        className={styles.trustBar}
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ delay: 1.0, duration: 0.5 }}
-      >
-        <div className={styles.trustBarInner}>
-          {[
-            "Official AMC factsheets",
-            "SEBI scheme documents",
-            "AMFI regulatory records",
-            "Zero personal data collected",
-          ].map((item, i) => (
-            <span key={item} style={{ display: "contents" }}>
-              {i > 0 && <span className={styles.trustDivider} />}
-              <span className={styles.trustTag}>
-                <span className={styles.trustTagDot} />
-                {item}
-              </span>
-            </span>
-          ))}
-        </div>
-      </motion.section>
-
-      {/* ── FEATURES ── */}
-      <section className={styles.section} id="features">
-        <div className={styles.sectionInner} ref={featRef}>
-          <motion.div
-            className={styles.sectionHeaderCenter}
-            variants={stagger(0)}
-            initial="hidden"
-            animate={featIn ? "show" : "hidden"}
-          >
-            <motion.span className={styles.sectionLabel} variants={fadeUp}>Features</motion.span>
-            <motion.h2 className={styles.sectionTitle} variants={fadeUp}>
-              Everything you need to know about your mutual fund schemes
-            </motion.h2>
-            <motion.p className={styles.sectionSubtitle} variants={fadeUp}>
-              From fees and lock-in periods to statements and risk ratings — get
-              fact-checked answers in seconds, not hours of document searching.
-            </motion.p>
+            <span className={s.badgeDot} />
+            AI-Powered Mutual Fund Intelligence
           </motion.div>
 
-          <motion.div
-            className={styles.featureGrid}
-            variants={stagger(0.05)}
-            initial="hidden"
-            animate={featIn ? "show" : "hidden"}
+          <motion.h1
+            className={s.heroTitle}
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.7, delay: 0.1, ease: [0.22, 1, 0.36, 1] }}
           >
-            {features.map((f) => (
-              <motion.article
-                className={styles.featureCard}
-                key={f.title}
-                variants={fadeUp}
-                whileHover={{ y: -5, transition: { duration: 0.2 } }}
-              >
-                <span className={styles.featureIconWrap}>{f.icon}</span>
-                <h3 className={styles.featureCardTitle}>{f.title}</h3>
-                <p className={styles.featureCardText}>{f.description}</p>
-              </motion.article>
+            Get{" "}
+            <span className={s.heroHighlight}>Instant Answers</span>{" "}
+            to Mutual Fund Questions
+          </motion.h1>
+
+          <motion.p
+            className={s.heroSubtitle}
+            initial={{ opacity: 0, y: 16 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.7, delay: 0.2, ease: [0.22, 1, 0.36, 1] }}
+          >
+            Expense ratios, exit loads, SIP minimums, and more — sourced
+            directly from official AMC, SEBI, and AMFI documents with full
+            citations.
+          </motion.p>
+
+          <motion.div
+            className={s.heroActions}
+            initial={{ opacity: 0, y: 16 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.7, delay: 0.3, ease: [0.22, 1, 0.36, 1] }}
+          >
+            <Link href="/chat" className={s.ctaPrimary}>
+              Start asking <span className={s.ctaArrow}>→</span>
+            </Link>
+            <a href="#features" className={s.ctaSecondary}>
+              Learn more
+            </a>
+          </motion.div>
+
+          {/* Glass stat chips */}
+          <motion.div
+            className={s.heroChips}
+            initial={{ opacity: 0, y: 12 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.7, delay: 0.4, ease: [0.22, 1, 0.36, 1] }}
+          >
+            {chipData.map((c, i) => (
+              <div key={i} className={s.chip}>
+                <span className={s.chipDot} />
+                <span className={s.chipValue}>{c.value}</span>
+                <span className={s.chipLabel}>{c.label}</span>
+                {c.up && <span className={s.chipUp}>▲</span>}
+              </div>
+            ))}
+          </motion.div>
+
+          {/* Stats row */}
+          <motion.div
+            className={s.statsRow}
+            initial={{ opacity: 0, y: 16 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.7, delay: 0.5, ease: [0.22, 1, 0.36, 1] }}
+          >
+            {stats.map((st, i) => (
+              <div key={i} className={s.statItem}>
+                <span className={s.statValue}>{st.value}</span>
+                <span className={s.statLabel}>{st.label}</span>
+              </div>
             ))}
           </motion.div>
         </div>
       </section>
 
-      {/* ── HOW IT WORKS ── */}
-      <section className={styles.sectionAlt} id="how-it-works">
-        <div className={styles.sectionInner} ref={stepsRef}>
-          <motion.div
-            className={styles.sectionHeaderCenter}
-            variants={stagger(0)}
-            initial="hidden"
-            animate={stepsIn ? "show" : "hidden"}
-          >
-            <motion.span className={styles.sectionLabel} variants={fadeUp}>How it works</motion.span>
-            <motion.h2 className={styles.sectionTitle} variants={fadeUp}>
-              Get verified answers in three simple steps
-            </motion.h2>
-          </motion.div>
-
-          <motion.div
-            className={styles.stepsGrid}
-            variants={stagger(0.1)}
-            initial="hidden"
-            animate={stepsIn ? "show" : "hidden"}
-          >
-            {steps.map((step) => (
-              <motion.article
-                className={styles.stepCard}
-                key={step.number}
-                variants={fadeUp}
-                whileHover={{ y: -5, transition: { duration: 0.2 } }}
-              >
-                <span className={styles.stepNumber}>{step.number}</span>
-                <h3 className={styles.stepTitle}>{step.title}</h3>
-                <p className={styles.stepText}>{step.description}</p>
-              </motion.article>
-            ))}
-          </motion.div>
+      {/* ─── TRUST BAR ─── */}
+      <div className={s.trustBar}>
+        <div className={s.trustBarInner}>
+          <span className={s.trustTag}>
+            <span className={s.trustTagDot} />
+            Official AMC Data
+          </span>
+          <span className={s.trustDivider} />
+          <span className={s.trustTag}>
+            <span className={s.trustTagDot} />
+            SEBI Verified
+          </span>
+          <span className={s.trustDivider} />
+          <span className={s.trustTag}>
+            <span className={s.trustTagDot} />
+            AMFI Sourced
+          </span>
+          <span className={s.trustDivider} />
+          <span className={s.trustTag}>
+            <span className={s.trustTagDot} />
+            No Data Stored
+          </span>
+          <span className={s.trustDivider} />
+          <span className={s.trustTag}>
+            <span className={s.trustTagDot} />
+            Real-time Processing
+          </span>
         </div>
-      </section>
+      </div>
 
-      {/* ── ASSISTANT PREVIEW ── */}
-      <section className={styles.section} id="assistant">
-        <div className={styles.sectionInner} ref={assistRef}>
-          <motion.div
-            className={styles.sectionHeaderCenter}
-            variants={stagger(0)}
-            initial="hidden"
-            animate={assistIn ? "show" : "hidden"}
-          >
-            <motion.span className={styles.sectionLabel} variants={fadeUp}>Try it now</motion.span>
-            <motion.h2 className={styles.sectionTitle} variants={fadeUp}>
-              See how FundIntel answers your questions
+      {/* ─── FEATURES ─── */}
+      <section id="features" className={s.section}>
+        <div className={s.sectionInner}>
+          <div className={s.sectionHeaderCenter}>
+            <motion.span
+              className={s.sectionLabel}
+              variants={fadeUp}
+              initial="hidden"
+              whileInView="visible"
+              viewport={{ once: true }}
+            >
+              Features
+            </motion.span>
+            <motion.h2
+              className={s.sectionTitle}
+              variants={fadeUp}
+              initial="hidden"
+              whileInView="visible"
+              viewport={{ once: true }}
+              custom={1}
+            >
+              Everything you need,{" "}
+              <span className={s.heroHighlight}>nothing you don&apos;t</span>
             </motion.h2>
-            <motion.p className={styles.sectionSubtitle} variants={fadeUp}>
-              Select an example question below or explore the different types of
-              queries the assistant can handle.
+            <motion.p
+              className={s.sectionSubtitle}
+              variants={fadeUp}
+              initial="hidden"
+              whileInView="visible"
+              viewport={{ once: true }}
+              custom={2}
+            >
+              Zero fluff. Zero guesswork. Only verified facts from official
+              sources — delivered in seconds.
             </motion.p>
-          </motion.div>
+          </div>
 
-          <motion.div
-            initial={{ opacity: 0, y: 36 }}
-            animate={assistIn ? { opacity: 1, y: 0 } : {}}
-            transition={{ duration: 0.6, delay: 0.2, ease: [0.22, 1, 0.36, 1] }}
-          >
-            <AssistantPreview />
-          </motion.div>
-        </div>
-      </section>
-
-      {/* ── TRUST & SAFETY ── */}
-      <section className={styles.sectionAlt} id="trust">
-        <div className={styles.sectionInner} ref={trustRef}>
-          <div className={styles.trustGrid}>
-            <motion.div
-              className={styles.trustContent}
-              variants={stagger(0)}
-              initial="hidden"
-              animate={trustIn ? "show" : "hidden"}
-            >
-              <motion.span className={styles.sectionLabel} variants={fadeUp}>Trust &amp; safety</motion.span>
-              <motion.h2 className={styles.sectionTitle} variants={fadeUp}>
-                Built with transparency at every layer
-              </motion.h2>
-              <motion.p className={styles.sectionSubtitle} variants={fadeUp}>
-                FundIntel is designed to give you facts, not opinions.
-                Your privacy and trust are non-negotiable.
-              </motion.p>
-            </motion.div>
-
-            <motion.div
-              className={styles.trustList}
-              variants={stagger(0.07)}
-              initial="hidden"
-              animate={trustIn ? "show" : "hidden"}
-            >
-              {trustPoints.map((point) => (
-                <motion.div
-                  className={styles.trustItem}
-                  key={point}
-                  variants={fadeUp}
-                  whileHover={{ x: 4, transition: { duration: 0.18 } }}
-                >
-                  <span className={styles.checkIcon}>✓</span>
-                  <p>{point}</p>
-                </motion.div>
-              ))}
-            </motion.div>
+          <div className={s.featureGrid}>
+            {features.map((f, i) => (
+              <motion.div
+                key={i}
+                className={s.featureCard}
+                variants={fadeUp}
+                initial="hidden"
+                whileInView="visible"
+                viewport={{ once: true }}
+                custom={i}
+              >
+                <div className={s.featureIconWrap}>{f.icon}</div>
+                <h3 className={s.featureCardTitle}>{f.title}</h3>
+                <p className={s.featureCardText}>{f.text}</p>
+              </motion.div>
+            ))}
           </div>
         </div>
       </section>
 
-      {/* ── FOOTER ── */}
-      <footer className={styles.footer}>
-        <div className={styles.footerInner}>
-          <div className={styles.footerTop}>
+      {/* ─── HOW IT WORKS ─── */}
+      <section id="how-it-works" className={s.sectionAlt}>
+        <div className={s.sectionInner}>
+          <div className={s.sectionHeaderCenter}>
+            <motion.span
+              className={s.sectionLabel}
+              variants={fadeUp}
+              initial="hidden"
+              whileInView="visible"
+              viewport={{ once: true }}
+            >
+              How it works
+            </motion.span>
+            <motion.h2
+              className={s.sectionTitle}
+              variants={fadeUp}
+              initial="hidden"
+              whileInView="visible"
+              viewport={{ once: true }}
+              custom={1}
+            >
+              Three steps to{" "}
+              <span className={s.heroHighlight}>verified answers</span>
+            </motion.h2>
+          </div>
+
+          <div className={s.stepsGrid}>
+            {steps.map((st, i) => (
+              <motion.div
+                key={i}
+                className={s.stepCard}
+                variants={fadeUp}
+                initial="hidden"
+                whileInView="visible"
+                viewport={{ once: true }}
+                custom={i}
+              >
+                <span className={s.stepNumber}>{st.num}</span>
+                <h3 className={s.stepTitle}>{st.title}</h3>
+                <p className={s.stepText}>{st.text}</p>
+              </motion.div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* ─── TRUST SECTION ─── */}
+      <section id="trust" className={s.section}>
+        <div className={s.sectionInner}>
+          <div className={s.trustGrid}>
+            <div className={s.trustContent}>
+              <motion.span
+                className={s.sectionLabel}
+                variants={fadeUp}
+                initial="hidden"
+                whileInView="visible"
+                viewport={{ once: true }}
+              >
+                Trust & safety
+              </motion.span>
+              <motion.h2
+                className={s.sectionTitle}
+                variants={fadeUp}
+                initial="hidden"
+                whileInView="visible"
+                viewport={{ once: true }}
+                custom={1}
+              >
+                Built for{" "}
+                <span className={s.heroHighlight}>accuracy</span>
+              </motion.h2>
+              <motion.p
+                className={s.sectionSubtitle}
+                variants={fadeUp}
+                initial="hidden"
+                whileInView="visible"
+                viewport={{ once: true }}
+                custom={2}
+              >
+                We don&apos;t hallucinate. If we don&apos;t know, we say so.
+                Every answer comes with a verifiable citation.
+              </motion.p>
+            </div>
+
+            <div className={s.trustList}>
+              {trustPoints.map((t, i) => (
+                <motion.div
+                  key={i}
+                  className={s.trustItem}
+                  variants={fadeUp}
+                  initial="hidden"
+                  whileInView="visible"
+                  viewport={{ once: true }}
+                  custom={i}
+                >
+                  <span className={s.checkIcon}>✓</span>
+                  <p>{t}</p>
+                </motion.div>
+              ))}
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* ─── CTA SECTION ─── */}
+      <section className={`${s.section} ${s.ctaSection}`}>
+        <div className={s.sectionInner}>
+          <motion.div
+            className={s.ctaCard}
+            variants={fadeUp}
+            initial="hidden"
+            whileInView="visible"
+            viewport={{ once: true }}
+          >
+            <h2 className={s.ctaCardTitle}>
+              Ready to get instant answers?
+            </h2>
+            <p className={s.ctaCardText}>
+              Ask about expense ratios, exit loads, SIP minimums, lock-in
+              periods, and more — all backed by official sources.
+            </p>
+            <div className={s.ctaCardActions}>
+              <Link href="/chat" className={s.ctaPrimaryLarge}>
+                Open FundIntel Chat <span className={s.ctaArrow}>→</span>
+              </Link>
+            </div>
+          </motion.div>
+        </div>
+      </section>
+
+      {/* ─── FOOTER ─── */}
+      <footer className={s.footer}>
+        <div className={s.footerInner}>
+          <div className={s.footerTop}>
             <div>
-              <a className={styles.footerBrandLogo} href="#top">
-                <span className={styles.footerLogoMark}>F</span>
-                <span className={styles.footerLogoText}>FundIntel</span>
-              </a>
-              <p className={styles.footerTagline}>
-                Facts-only mutual fund intelligence.
-                <br />
-                No advice. No personal data. Just answers.
+              <div className={s.footerBrandLogo}>
+                <span className={s.footerLogoMark}>FI</span>
+                <span className={s.footerLogoText}>FundIntel</span>
+              </div>
+              <p className={s.footerTagline}>
+                AI-powered mutual fund intelligence. Verified facts from
+                official AMC, SEBI &amp; AMFI documents.
               </p>
             </div>
-            <nav className={styles.footerNav}>
+            <nav className={s.footerNav}>
               <a href="#features">Features</a>
-              <a href="#how-it-works">How it works</a>
-              <a href="#assistant">Try the assistant</a>
-              <a href="#trust">Trust &amp; safety</a>
+              <Link href="/chat">Chat</Link>
             </nav>
           </div>
-
-          <div className={styles.footerDivider} />
-
-          <div className={styles.footerBottom}>
-            <p className={styles.disclaimer}>
-              FundIntel provides factual information sourced from official AMC, SEBI,
-              and AMFI documents. This is not investment advice. Mutual fund investments
-              are subject to market risks. Please read all scheme-related documents
-              carefully before investing. Past performance is not indicative of future results.
+          <div className={s.footerDivider} />
+          <div className={s.footerBottom}>
+            <p className={s.disclaimer}>
+              Disclaimer: FundIntel provides information sourced from official
+              documents for educational purposes only. This is not financial
+              advice. Always verify with official sources and consult a
+              qualified financial advisor before making investment decisions.
             </p>
-            <p className={styles.copyright}>
-              © {new Date().getFullYear()} FundIntel. All rights reserved.
+            <p className={s.copyright}>
+              © {new Date().getFullYear()} FundIntel — Mutual Fund Intelligence
             </p>
           </div>
         </div>
       </footer>
 
-      <motion.a
-        className={styles.floatingBot}
-        href="#assistant"
-        aria-label="Open the FundIntel assistant"
-        style={{ opacity: floatingBotOpacity, y: floatingBotY }}
-        initial={{ opacity: 0, y: 24 }}
-      >
-        <span className={styles.floatingBotIcon}>◎</span>
-        <span className={styles.floatingBotTextWrap}>
-          <span className={styles.floatingBotLabel}>Chat now</span>
-          <span className={styles.floatingBotText}>Open FundIntel assistant</span>
+      {/* ─── FLOATING CHAT PILL ─── */}
+      <Link href="/chat" className={s.floatingBot}>
+        <span className={s.floatingBotIcon}>
+          <svg
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          >
+            <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
+          </svg>
         </span>
-      </motion.a>
-
-    </main>
+        <span className={s.floatingBotText}>Ask FundIntel</span>
+      </Link>
+    </div>
   );
 }

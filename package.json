@@ -4,7 +4,9 @@
   "private": true,
   "packageManager": "bun@1.2.10",
   "scripts": {
-    "dev": "next dev",
+    "clean": "node -e \"require('fs').rmSync('.next', { recursive: true, force: true })\"",
+    "dev": "next dev --turbopack",
+    "dev:reset": "npm run clean && next dev --turbopack",
     "build": "next build",
     "start": "next start",
     "lint": "next lint"

@@ -17,9 +17,9 @@ const dmSans = DM_Sans({
 });
 
 export const metadata: Metadata = {
-  title: "FundIntel — Instant Mutual Fund Answers with Citations",
+  title: "FundIntel - Instant Mutual Fund Answers with Citations",
   description:
-    "Get fact-checked answers to mutual fund questions instantly. Expense ratios, exit loads, SIP minimums, and more — sourced from official AMC, SEBI, and AMFI documents.",
+    "Get fact-checked answers to mutual fund questions instantly. Expense ratios, exit loads, SIP minimums, and more - sourced from official AMC, SEBI, and AMFI documents.",
 };
 
 export default function RootLayout({
@@ -27,8 +27,12 @@ export default function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const themeScript = `(function(){try{var t=localStorage.getItem('theme');if(t==='light')document.documentElement.setAttribute('data-theme','light')}catch(e){}})()`;
   return (
-    <html lang="en" className={`${sora.variable} ${dmSans.variable}`}>
+    <html lang="en" className={`${sora.variable} ${dmSans.variable}`} suppressHydrationWarning>
+      <head>
+        <script dangerouslySetInnerHTML={{ __html: themeScript }} />
+      </head>
       <body suppressHydrationWarning>{children}</body>
     </html>
   );
