@@ -33,15 +33,42 @@ export async function POST(request: Request) {
       cache: "no-store",
     });
 
-    const data = await upstream.json();
+    const raw = await upstream.text();
+    let data: Record<string, unknown> | null = null;
 
-    // FastAPI validation errors (422) return {detail: [...]}, not our schema
-    if (!data.status || !data.answer) {
+    try {
+      data = JSON.parse(raw) as Record<string, unknown>;
+    } catch {
+      data = null;
+    }
+
+    if (!upstream.ok) {
+      const detail =
+        typeof data?.detail === "string"
+          ? data.detail
+          : Array.isArray(data?.detail)
+            ? "The backend rejected the request payload."
+            : null;
+
       return Response.json(
         {
           status: "error",
           answer:
-            "I couldn't process that request. Please try rephrasing your question.",
+            detail ??
+            `The backend returned ${upstream.status}. Check MF_RAG_API_URL and ensure it is the service base URL without /v1.`,
+          last_updated_from_sources: "Unavailable",
+        },
+        { status: 200 },
+      );
+    }
+
+    // FastAPI validation errors (422) return {detail: [...]}, not our schema
+    if (!data || !data.status || !data.answer) {
+      return Response.json(
+        {
+          status: "error",
+          answer:
+            "The backend response was invalid. Check MF_RAG_API_URL and verify the Fly deployment is serving /v1/qa.",
           last_updated_from_sources: "Unavailable",
         },
         { status: 200 },
