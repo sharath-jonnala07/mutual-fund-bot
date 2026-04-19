@@ -1,0 +1,22 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128">
+  <defs>
+    <linearGradient id="bg" x1="12" y1="10" x2="116" y2="118" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#0d1420"/>
+      <stop offset="1" stop-color="#091019"/>
+    </linearGradient>
+    <linearGradient id="accent" x1="28" y1="94" x2="96" y2="30" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#0b5a54"/>
+      <stop offset="1" stop-color="#2b8f87"/>
+    </linearGradient>
+    <linearGradient id="gold" x1="36" y1="98" x2="92" y2="36" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#e8c98a"/>
+      <stop offset="1" stop-color="#fff1cb"/>
+    </linearGradient>
+  </defs>
+  <rect x="8" y="8" width="112" height="112" rx="30" fill="url(#bg)"/>
+  <rect x="8.5" y="8.5" width="111" height="111" rx="29.5" fill="none" stroke="rgba(255,255,255,0.08)"/>
+  <path d="M34 88V40h12v36h18v12H34Z" fill="url(#gold)"/>
+  <path d="M78 92c-8.837 0-16-7.163-16-16V40h12v35.5c0 2.485 2.015 4.5 4.5 4.5S83 77.985 83 75.5V40h12v36c0 8.837-7.163 16-16 16Z" fill="url(#accent)"/>
+  <path d="M31 94c13-3 23.667-8.833 32-17.5C71.333 67.833 80.667 54 91 35" fill="none" stroke="url(#accent)" stroke-linecap="round" stroke-width="5" opacity="0.9"/>
+  <circle cx="92" cy="34" r="7" fill="url(#gold)"/>
+</svg>

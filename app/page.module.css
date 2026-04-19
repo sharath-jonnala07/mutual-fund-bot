@@ -28,14 +28,9 @@
   gap: 8px;
   padding: 8px 8px 8px 20px;
   border-radius: var(--radius-full);
-  background: var(--surface-glass-strong);
-  backdrop-filter: blur(24px) saturate(180%);
-  -webkit-backdrop-filter: blur(24px) saturate(180%);
-  border: 1px solid var(--border-glass);
-  box-shadow:
-    0 8px 32px rgba(0,0,0,0.4),
-    0 0 0 1px rgba(255,255,255,0.03),
-    inset 0 1px 0 rgba(255,255,255,0.04);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  box-shadow: none;
 }
 
 .logo {
@@ -58,7 +53,7 @@
   font-weight: 800;
   font-size: 0.875rem;
   letter-spacing: -0.03em;
-  box-shadow: 0 2px 12px rgba(0,228,170,0.3);
+  box-shadow: none;
 }
 
 .logoText {
@@ -100,21 +95,21 @@
   height: 38px;
   padding: 0 20px;
   border-radius: var(--radius-full);
-  background: linear-gradient(135deg, var(--green-400) 0%, var(--green-600) 100%);
+  background: linear-gradient(135deg, #2b8f87 0%, var(--green-400) 52%, var(--green-600) 100%);
   color: #fff;
   font-family: var(--font-body);
   font-size: 0.8125rem;
   font-weight: 600;
   letter-spacing: -0.01em;
-  box-shadow: 0 2px 16px rgba(0,228,170,0.3), inset 0 1px 0 rgba(255,255,255,0.15);
-  transition: box-shadow 0.2s, transform 0.15s;
+  box-shadow: none;
+  transition: transform 0.15s, filter 0.2s;
   white-space: nowrap;
   flex-shrink: 0;
 }
 
 .headerCta:hover {
-  box-shadow: 0 4px 24px rgba(0,228,170,0.45), inset 0 1px 0 rgba(255,255,255,0.15);
   transform: translateY(-1px);
+  filter: brightness(1.04);
 }
 
 .headerActions {
@@ -130,8 +125,8 @@
   width: 38px;
   height: 38px;
   border-radius: var(--radius-full);
-  background: var(--surface-glass);
-  border: 1px solid var(--border-glass);
+  background: var(--surface);
+  border: 1px solid var(--border);
   font-size: 1.1rem;
   cursor: pointer;
   transition: background 0.2s, border-color 0.2s, transform 0.15s;
@@ -139,7 +134,7 @@
 }
 
 .themeToggle:hover {
-  background: rgba(255,255,255,0.1);
+  background: var(--surface-alt);
   border-color: var(--border-green);
   transform: translateY(-1px);
 }
@@ -172,7 +167,7 @@
   width: 1000px;
   height: 1000px;
   border-radius: 50%;
-  background: radial-gradient(ellipse, rgba(0,228,170,0.08) 0%, transparent 60%);
+  background: radial-gradient(ellipse, rgba(15,117,109,0.10) 0%, transparent 60%);
   filter: blur(80px);
   animation: orbFloat1 12s ease-in-out infinite;
 }
@@ -196,7 +191,7 @@
   width: 500px;
   height: 500px;
   border-radius: 50%;
-  background: radial-gradient(ellipse, rgba(0,228,170,0.06) 0%, transparent 70%);
+  background: radial-gradient(ellipse, rgba(15,117,109,0.08) 0%, transparent 70%);
   filter: blur(70px);
   animation: orbFloat3 10s ease-in-out infinite;
 }
@@ -209,7 +204,7 @@
   transform: translateX(-50%);
   width: 1px;
   height: 40vh;
-  background: linear-gradient(to bottom, rgba(0,228,170,0.25), transparent);
+  background: linear-gradient(to bottom, rgba(15,117,109,0.25), transparent);
 }
 
 @keyframes orbFloat1 {
@@ -273,7 +268,7 @@
   font-size: 0.8125rem;
   font-weight: 600;
   letter-spacing: 0.01em;
-  box-shadow: 0 2px 16px rgba(0,228,170,0.08), inset 0 1px 0 rgba(255,255,255,0.04);
+  box-shadow: 0 2px 16px rgba(15,117,109,0.08), inset 0 1px 0 rgba(255,255,255,0.04);
 }
 
 .badgeDot {
@@ -283,13 +278,13 @@
   background: var(--green-400);
   flex-shrink: 0;
   animation: badgePulse 2.4s ease-in-out infinite;
-  box-shadow: 0 0 8px rgba(0,228,170,0.6);
+  box-shadow: 0 0 8px rgba(15,117,109,0.42);
 }
 
 @keyframes badgePulse {
-  0%   { opacity: 1; transform: scale(1);    box-shadow: 0 0 0 0   rgba(0,228,170,0.6); }
-  50%  { opacity: 0.6; transform: scale(0.85); box-shadow: 0 0 0 6px rgba(0,228,170,0);  }
-  100% { opacity: 1; transform: scale(1);    box-shadow: 0 0 0 0   rgba(0,228,170,0.6); }
+  0%   { opacity: 1; transform: scale(1);    box-shadow: 0 0 0 0   rgba(15,117,109,0.42); }
+  50%  { opacity: 0.6; transform: scale(0.85); box-shadow: 0 0 0 6px rgba(15,117,109,0);  }
+  100% { opacity: 1; transform: scale(1);    box-shadow: 0 0 0 0   rgba(15,117,109,0.42); }
 }
 
 .heroTitle {
@@ -306,7 +301,7 @@
 .heroHighlight {
   position: relative;
   color: transparent;
-  background: linear-gradient(135deg, var(--green-400) 0%, #00ffcc 50%, #00b4ff 100%);
+  background: linear-gradient(135deg, #2b8f87 0%, var(--green-400) 52%, #0a4f4b 100%);
   -webkit-background-clip: text;
   background-clip: text;
   display: inline-block;
@@ -338,14 +333,14 @@
   height: 54px;
   padding: 0 32px;
   border-radius: var(--radius-full);
-  background: linear-gradient(135deg, var(--green-400), var(--green-600));
+  background: linear-gradient(135deg, #2b8f87 0%, var(--green-400) 52%, var(--green-600) 100%);
   color: #fff;
   font-family: var(--font-body);
   font-size: 0.9375rem;
   font-weight: 600;
   letter-spacing: -0.01em;
   box-shadow:
-    0 4px 24px rgba(0,228,170,0.35),
+    0 4px 24px rgba(15,117,109,0.22),
     0 1px 3px rgba(0,0,0,0.2),
     inset 0 1px 0 rgba(255,255,255,0.15);
   transition: box-shadow 0.25s, transform 0.2s;
@@ -353,7 +348,7 @@
 
 .ctaPrimary:hover {
   box-shadow:
-    0 8px 40px rgba(0,228,170,0.5),
+    0 8px 40px rgba(15,117,109,0.28),
     0 2px 6px rgba(0,0,0,0.2),
     inset 0 1px 0 rgba(255,255,255,0.15);
   transform: translateY(-2px);
@@ -1072,24 +1067,16 @@
   height: 56px;
   padding: 0 24px 0 8px;
   border-radius: var(--radius-full);
-  background: var(--surface-glass-strong);
-  backdrop-filter: blur(24px) saturate(180%);
-  -webkit-backdrop-filter: blur(24px) saturate(180%);
+  background: var(--surface);
   border: 1px solid var(--border-green);
-  box-shadow:
-    0 8px 32px rgba(0,0,0,0.4),
-    var(--glow-green),
-    inset 0 1px 0 rgba(255,255,255,0.04);
-  transition: transform 0.2s, box-shadow 0.2s, border-color 0.2s;
+  box-shadow: none;
+  transition: transform 0.2s, border-color 0.2s, background 0.2s;
 }
 
 .floatingBot:hover {
   transform: translateY(-3px);
   border-color: var(--border-green-strong);
-  box-shadow:
-    0 12px 40px rgba(0,0,0,0.5),
-    var(--glow-green-strong),
-    inset 0 1px 0 rgba(255,255,255,0.06);
+  background: var(--surface-alt);
 }
 
 .floatingBotIcon {
@@ -1099,9 +1086,9 @@
   width: 40px;
   height: 40px;
   border-radius: 50%;
-  background: linear-gradient(135deg, var(--green-400), var(--green-600));
+  background: linear-gradient(135deg, #27bda7 0%, var(--green-400) 55%, var(--green-600) 100%);
   flex-shrink: 0;
-  box-shadow: 0 4px 16px rgba(0,228,170,0.3);
+  box-shadow: none;
 }
 
 .floatingBotIcon svg {

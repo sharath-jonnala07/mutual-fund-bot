@@ -94,11 +94,14 @@ const fadeUp = {
 /* ─── Page Component ─── */
 
 export default function Home() {
-  const [theme, setTheme] = useState<"dark" | "light">("dark");
+  const [theme, setTheme] = useState<"dark" | "light">("light");
 
   useEffect(() => {
     const saved = localStorage.getItem("theme") as "dark" | "light" | null;
-    if (saved === "light") {
+    if (saved === "dark") {
+      setTheme("dark");
+      document.documentElement.removeAttribute("data-theme");
+    } else {
       setTheme("light");
       document.documentElement.setAttribute("data-theme", "light");
     }
@@ -107,10 +110,10 @@ export default function Home() {
   const toggleTheme = () => {
     const next = theme === "dark" ? "light" : "dark";
     setTheme(next);
-    if (next === "light") {
-      document.documentElement.setAttribute("data-theme", "light");
-    } else {
+    if (next === "dark") {
       document.documentElement.removeAttribute("data-theme");
+    } else {
+      document.documentElement.setAttribute("data-theme", "light");
     }
     localStorage.setItem("theme", next);
   };
