@@ -1,5 +1,11 @@
 export const dynamic = "force-dynamic";
 
+function normalizeApiBaseUrl(value: string | undefined): string {
+  const fallback = "http://127.0.0.1:8000";
+  const trimmed = value?.trim() || fallback;
+  return trimmed.replace(/\/+$/, "").replace(/\/v1$/i, "");
+}
+
 type ChatRequest = {
   question: string;
   conversation_id?: string;
@@ -21,7 +27,7 @@ export async function POST(request: Request) {
     );
   }
 
-  const apiBaseUrl = process.env.MF_RAG_API_URL ?? "http://127.0.0.1:8000";
+  const apiBaseUrl = normalizeApiBaseUrl(process.env.MF_RAG_API_URL);
 
   try {
     const upstream = await fetch(`${apiBaseUrl}/v1/qa`, {
@@ -54,7 +60,9 @@ export async function POST(request: Request) {
         {
           status: "error",
           answer:
-            detail ??
+            (detail === "Not Found"
+              ? "The backend path was not found. Check MF_RAG_API_URL and make sure it is only the service base URL, not a /v1 path."
+              : detail) ??
             `The backend returned ${upstream.status}. Check MF_RAG_API_URL and ensure it is the service base URL without /v1.`,
           last_updated_from_sources: "Unavailable",
         },
