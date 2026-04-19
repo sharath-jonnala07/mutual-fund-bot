@@ -140,7 +140,7 @@ export default function Home() {
             >
               {theme === "dark" ? "☀️" : "🌙"}
             </button>
-            <Link href="/chat" className={s.headerCta}>
+            <Link href="/chat" prefetch={false} className={s.headerCta}>
               Ask a question
             </Link>
           </div>
@@ -197,7 +197,7 @@ export default function Home() {
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.7, delay: 0.3, ease: [0.22, 1, 0.36, 1] }}
           >
-            <Link href="/chat" className={s.ctaPrimary}>
+            <Link href="/chat" prefetch={false} className={s.ctaPrimary}>
               Start asking <span className={s.ctaArrow}>→</span>
             </Link>
             <a href="#features" className={s.ctaSecondary}>

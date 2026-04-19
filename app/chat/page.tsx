@@ -139,7 +139,7 @@ export default function ChatPage() {
       {/* ─── HEADER ─── */}
       <header className={s.chatHeader}>
         <div className={s.headerLeft}>
-          <Link href="/" className={s.backLink} aria-label="Back to home">
+          <Link href="/" prefetch={false} className={s.backLink} aria-label="Back to home">
             ←
           </Link>
           <div className={s.headerBrand}>

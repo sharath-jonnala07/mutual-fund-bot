@@ -1,9 +1,36 @@
 export const dynamic = "force-dynamic";
+export const maxDuration = 30;
+
+const TRANSIENT_UPSTREAM_STATUSES = new Set([429, 502, 503, 504]);
 
 function normalizeApiBaseUrl(value: string | undefined): string {
   const fallback = "http://127.0.0.1:8000";
   const trimmed = value?.trim() || fallback;
   return trimmed.replace(/\/+$/, "").replace(/\/v1$/i, "");
+}
+
+async function fetchUpstream(url: string, payload: ChatRequest) {
+  let response: Response | null = null;
+
+  for (let attempt = 0; attempt < 2; attempt += 1) {
+    response = await fetch(url, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(payload),
+      cache: "no-store",
+      signal: AbortSignal.timeout(25000),
+    });
+
+    if (!TRANSIENT_UPSTREAM_STATUSES.has(response.status) || attempt === 1) {
+      return response;
+    }
+
+    await new Promise((resolve) => setTimeout(resolve, 600));
+  }
+
+  return response;
 }
 
 type ChatRequest = {
@@ -30,14 +57,11 @@ export async function POST(request: Request) {
   const apiBaseUrl = normalizeApiBaseUrl(process.env.MF_RAG_API_URL);
 
   try {
-    const upstream = await fetch(`${apiBaseUrl}/v1/qa`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(payload),
-      cache: "no-store",
-    });
+    const upstream = await fetchUpstream(`${apiBaseUrl}/v1/qa`, payload);
+
+    if (!upstream) {
+      throw new Error("No upstream response received");
+    }
 
     const raw = await upstream.text();
     let data: Record<string, unknown> | null = null;
